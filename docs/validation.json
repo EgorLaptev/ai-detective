@@ -1,0 +1,10 @@
+{
+  "documents": 10,
+  "words": 5194,
+  "claims": 36,
+  "questions": 12,
+  "llm_executed": false,
+  "gold_reviewed_by_team": false,
+  "tests": "28 passed",
+  "test_backend": "unit-test transport only; no research predictions"
+}
