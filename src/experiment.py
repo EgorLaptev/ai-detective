@@ -24,7 +24,7 @@ def run(llm,output,only_base=False,review_path=None,limit=None):
     output=Path(output);output.mkdir(parents=True,exist_ok=True)
     docs,claims,qs=load_data();system=(ROOT/'prompts/system.txt').read_text(encoding='utf-8')
     review=json.loads(Path(review_path).read_text()) if review_path else {}
-    run_config=dict(model=llm.model,revision=getattr(llm,'revision',None),temperature=0,do_sample=False,max_new_tokens=384,seed=42,dataset_hash=fingerprint([docs,claims,qs]),prompt_hash=fingerprint(system),python=platform.python_version(),packages={p:importlib.metadata.version(p) for p in ('pydantic','rank-bm25','pandas')})
+    run_config=dict(backend=type(llm).__name__,model=llm.model,revision=getattr(llm,'revision',None),temperature=0,do_sample=False,max_new_tokens=384,seed=42,dataset_hash=fingerprint([docs,claims,qs]),prompt_hash=fingerprint(system),python=platform.python_version(),packages={p:importlib.metadata.version(p) for p in ('pydantic','rank-bm25','pandas')})
     run_hash=fingerprint(run_config)
     manifest=output/'manifest.json'
     if manifest.exists() and json.loads(manifest.read_text())['run_hash']!=run_hash: raise ValueError('Папка содержит результаты другой конфигурации')
