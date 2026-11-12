@@ -58,7 +58,7 @@ with tabs[0]:
     saved=next((r for r in rows if r['question_id']==q['question_id'] and r['mode']==mode and r['variant']==variant and r.get('context_hash')==__import__('src.io',fromlist=['fingerprint']).fingerprint(context)),None)
     if st.button('Запросить модель',type='primary'):
         with st.spinner('Модель читает досье…'):
-            res=call_one(OpenAICompatible(model), (ROOT/'prompts/system.txt').read_text(),q,mode,ds,cs,selected)
+            res=call_one(OpenAICompatible(model, live_demo=True), (ROOT/'prompts/system.txt').read_text(),q,mode,ds,cs,selected)
             st.session_state['live_result']=(key,res)
     live=st.session_state.get('live_result')
     active=live[1] if live and live[0]==key else saved
