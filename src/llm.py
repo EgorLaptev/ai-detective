@@ -25,16 +25,20 @@ def _http_message(status):
 
 
 class OpenAICompatible:
-    def __init__(self, model='Qwen/Qwen2.5-7B-Instruct', base_url=None):
+    def __init__(self, model='Qwen/Qwen2.5-7B-Instruct', base_url=None, *, live_demo=False):
         self.model = model
         self.base_url = base_url or os.getenv('LLM_BASE_URL', 'http://localhost:1234/v1')
+        free_openrouter = self.base_url.startswith('https://openrouter.ai/') and (
+            model == 'openrouter/free' or model.endswith(':free')
+        )
+        self.max_tokens = 8192 if live_demo and free_openrouter else 384
 
     def __call__(self, messages):
         try:
             response = requests.post(
                 self.base_url.rstrip('/') + '/chat/completions',
                 headers={'Authorization': 'Bearer ' + os.getenv('LLM_API_KEY', 'local-key')},
-                json=dict(model=self.model, messages=messages, temperature=0, max_tokens=384, seed=42),
+                json=dict(model=self.model, messages=messages, temperature=0, max_tokens=self.max_tokens, seed=42),
                 timeout=300,
             )
             response.raise_for_status()
@@ -48,7 +52,7 @@ class OpenAICompatible:
             raw = choice['message'].get('content')
             if not isinstance(raw, str) or not raw.strip():
                 if choice.get('finish_reason') == 'length':
-                    raise LLMUnavailable('Модель исчерпала лимит токенов до итогового ответа.')
+                    raise LLMUnavailable(f'Модель исчерпала лимит в {self.max_tokens} токенов до итогового ответа.')
                 raise LLMUnavailable('Модель не вернула текст ответа. Повторите запрос или выберите другую модель.')
             usage = body.get('usage') or {}
             return dict(raw=raw, input_tokens=usage.get('prompt_tokens'), output_tokens=usage.get('completion_tokens'))
